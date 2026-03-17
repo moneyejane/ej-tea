@@ -151,25 +151,25 @@
                         <p class="text-gray-500 font-medium">目前還沒有菜單<br>請點擊「發起團購」建立今天的菜單吧！</p>
                     </div>
 
+                    <!-- 菜單列表 (修復手機版點擊衝突問題) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div v-for="item in menuItems" :key="item.id" 
-                             class="bg-white p-4 rounded-lg border-2 border-gray-100 hover:border-red-300 transition-all cursor-pointer relative group transform hover:-translate-y-1 hover:shadow-md" 
+                             class="bg-white p-4 rounded-lg border-2 border-gray-100 hover:border-red-300 transition-all cursor-pointer relative flex justify-between items-center group active:scale-95 shadow-sm" 
                              @click="addToCart(item)">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h3 class="font-bold text-lg text-gray-800">{{ item.name }}</h3>
-                                    <span class="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{{ item.category }}</span>
-                                </div>
-                                <span class="font-bold text-red-500 text-lg">${{ item.price }}</span>
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800">{{ item.name }}</h3>
+                                <span class="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{{ item.category }}</span>
                             </div>
-                            <div class="absolute inset-0 bg-red-50 bg-opacity-0 group-hover:bg-opacity-80 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
-                                <span class="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md transform scale-90 group-hover:scale-100 transition-transform">
-                                    <i class="fas fa-plus mr-1"></i>加入購物車
-                                </span>
+                            <div class="flex items-center space-x-3">
+                                <span class="font-bold text-red-500 text-lg">${{ item.price }}</span>
+                                <button class="bg-red-50 text-red-500 md:group-hover:bg-red-500 md:group-hover:text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors border border-red-100">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
 
+                    <!-- 浮動購物車按鈕 -->
                     <transition name="scale">
                         <div v-if="cart.length > 0" class="fixed bottom-6 right-6 z-40">
                             <button @click="currentView = 'cart'" class="sketch-btn sketch-btn-primary w-16 h-16 rounded-full flex items-center justify-center shadow-2xl text-2xl relative hover:scale-110 transition-transform">
@@ -197,18 +197,23 @@
 
                     <div v-else class="space-y-4 mb-8">
                         <transition-group name="fade">
-                            <div v-for="(item, index) in cart" :key="index" class="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-gray-100 shadow-sm">
-                                <div class="flex-1">
+                            <!-- 修改：將原本的單行 Flex 改為手機版上下排列 (flex-col sm:flex-row) -->
+                            <div v-for="(item, index) in cart" :key="index" class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-white p-3 rounded-lg border-2 border-gray-100 shadow-sm gap-3">
+                                <div class="flex-1 w-full">
                                     <div class="font-bold text-gray-800">{{ item.name }}</div>
-                                    <input v-model="item.note" placeholder="備註 (如：半糖/去冰...)" class="mt-2 w-full text-sm border-b border-gray-300 focus:border-red-400 outline-none bg-transparent transition-colors py-1">
+                                    <input v-model="item.note" placeholder="備註 (如：半糖/去冰...)" class="mt-1 w-full text-sm border-b border-gray-300 focus:border-red-400 outline-none bg-transparent transition-colors py-1">
                                 </div>
-                                <div class="flex items-center space-x-2 ml-4 bg-gray-50 rounded-full p-1 border border-gray-200">
-                                    <button @click="updateQty(index, -1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">-</button>
-                                    <span class="font-mono font-bold w-6 text-center text-sm">{{ item.qty }}</span>
-                                    <button @click="updateQty(index, 1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">+</button>
+                                <div class="flex items-center justify-between w-full sm:w-auto mt-2 sm:mt-0">
+                                    <div class="flex items-center space-x-2 bg-gray-50 rounded-full p-1 border border-gray-200">
+                                        <button @click="updateQty(index, -1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">-</button>
+                                        <span class="font-mono font-bold w-6 text-center text-sm">{{ item.qty }}</span>
+                                        <button @click="updateQty(index, 1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">+</button>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="ml-4 font-bold text-right text-gray-700 whitespace-nowrap">${{ item.price * item.qty }}</div>
+                                        <button @click="removeFromCart(index)" class="ml-3 text-gray-300 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
                                 </div>
-                                <div class="ml-4 font-bold w-12 text-right text-gray-700">${{ item.price * item.qty }}</div>
-                                <button @click="removeFromCart(index)" class="ml-3 text-gray-300 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </transition-group>
                     </div>
@@ -304,7 +309,8 @@
                     </div>
 
                     <div class="flex flex-col md:flex-row gap-6">
-                        <div class="flex-1">
+                        <!-- 修改：在手機版將「給店家的清單」放到下面 (order-2)，電腦版保持在左側 (md:order-1) -->
+                        <div class="flex-1 order-2 md:order-1">
                             <div class="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm h-full flex flex-col">
                                 <div class="flex justify-between items-center mb-4">
                                     <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-clipboard-list mr-2 text-green-500"></i>給店家的清單</h3>
@@ -312,19 +318,20 @@
                                         <i class="far fa-copy mr-1"></i>複製文字
                                     </button>
                                 </div>
-                                <div class="relative flex-1">
-                                    <pre class="whitespace-pre-wrap text-sm font-mono bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-gray-800 h-64 overflow-y-auto w-full absolute inset-0 custom-scrollbar">{{ generateOrderText }}</pre>
+                                <div class="w-full">
+                                    <pre class="whitespace-pre-wrap text-sm font-mono bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-gray-800 h-64 overflow-y-auto w-full custom-scrollbar">{{ generateOrderText }}</pre>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex-1">
+                        <!-- 修改：在手機版將「明細」放到上面 (order-1)，電腦版保持在右側 (md:order-2) -->
+                        <div class="flex-1 order-1 md:order-2">
                              <div class="flex justify-between items-center mb-4">
                                  <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i>明細 ({{ existingOrders.length }} 筆)</h3>
                              </div>
-                             <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                                 <div class="max-h-[280px] overflow-y-auto custom-scrollbar">
-                                     <table class="w-full text-sm text-left">
+                             <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm w-full">
+                                 <div class="max-h-[400px] overflow-auto custom-scrollbar">
+                                     <table class="w-full text-sm text-left min-w-[450px]">
                                          <thead class="bg-gray-50 font-bold text-gray-600 sticky top-0 shadow-sm z-10">
                                              <tr>
                                                  <th class="p-3 border-b">訂購人</th>
@@ -532,9 +539,15 @@
 
                 const addToCart = (item) => {
                     const existing = cart.value.find(c => c.name === item.name && !c.note);
-                    if (existing) existing.qty++;
-                    else cart.value.push({ ...item, qty: 1, note: '' });
+                    if (existing) {
+                        existing.qty++;
+                    } else {
+                        cart.value.push({ ...item, qty: 1, note: '' });
+                    }
                     showMsg(`已將 ${item.name} 加入購物車`);
+                    
+                    // ⭐ 新增這行：點擊後自動跳轉到購物車 (結帳) 畫面
+                    currentView.value = 'cart';
                 };
 
                 const updateQty = (idx, delta) => {
