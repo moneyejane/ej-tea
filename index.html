@@ -101,7 +101,8 @@
                 <p class="text-sm text-gray-600 mt-1 ml-2 font-medium">今天吃喝什麼？</p>
             </div>
             <div class="flex items-center space-x-2 sm:space-x-3">
-                <button v-if="gasUrl || isPreviewMode" @click="currentView = 'admin'" class="sketch-btn sketch-btn-secondary px-3 py-1.5 text-sm shadow hover:shadow-md flex items-center text-purple-600">
+                <!-- 修改：將按鈕的 @click 事件改為打開密碼彈窗 -->
+                <button v-if="gasUrl || isPreviewMode" @click="showPasswordModal = true; adminPassword = ''" class="sketch-btn sketch-btn-secondary px-3 py-1.5 text-sm shadow hover:shadow-md flex items-center text-purple-600">
                     <i class="fas fa-magic sm:mr-1"></i><span class="hidden sm:inline font-bold">發起新團購</span>
                 </button>
                 <button @click="showSettings = true" class="sketch-btn sketch-btn-secondary w-10 h-10 flex items-center justify-center text-xl shadow hover:shadow-md" title="設定">
@@ -377,6 +378,24 @@
             </transition>
         </main>
 
+        <!-- 新增：密碼輸入 Modal -->
+        <transition name="modal">
+            <div v-if="showPasswordModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity" @click="showPasswordModal = false"></div>
+                <div class="paper-card bg-white w-full max-w-sm p-6 relative z-10 transform scale-100 transition-transform text-center">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800"><i class="fas fa-lock mr-2 text-gray-500"></i>發起人驗證</h3>
+                    <p class="text-sm text-gray-600 mb-4">請輸入管理員密碼以發起新團購</p>
+                    <input v-model="adminPassword" type="password" placeholder="請輸入密碼" @keyup.enter="checkAdminPassword" class="sketch-input w-full text-center text-lg tracking-widest mb-6 font-mono">
+                    <div class="flex space-x-3 justify-center">
+                        <button @click="showPasswordModal = false" class="sketch-btn sketch-btn-secondary px-5 py-2 text-sm w-full">取消</button>
+                        <button @click="checkAdminPassword" class="sketch-btn sketch-btn-primary px-5 py-2 text-sm flex items-center justify-center w-full">
+                            確認
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
         <!-- 設定視窗 Modal (極簡版) -->
         <transition name="modal">
             <div v-if="showSettings" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -456,6 +475,10 @@
                 const loadingMsg = ref('');
                 const showSettings = ref(false);
                 
+                // 新增：控制密碼彈窗的變數
+                const showPasswordModal = ref(false);
+                const adminPassword = ref('');
+
                 const gasUrl = ref('');
                 const tempGasUrl = ref('');
                 
@@ -801,9 +824,22 @@
                     }
                 };
 
+                // 新增：驗證密碼的邏輯
+                const checkAdminPassword = () => {
+                    if (adminPassword.value === '1234') {
+                        showPasswordModal.value = false;
+                        adminPassword.value = '';
+                        currentView.value = 'admin';
+                    } else {
+                        showMsg('密碼錯誤！請重新輸入', 'error');
+                        adminPassword.value = '';
+                    }
+                };
+
                 return {
                     currentView, gasUrl, loading, loadingMsg, 
                     showSettings, tempGasUrl, menuItems, cart, userName, cartTotalQty, cartTotalPrice,
+                    showPasswordModal, adminPassword, checkAdminPassword,
                     addToCart, updateQty, removeFromCart, submitOrder,
                     handleImageUpload, newMenuItems, aiProcessing, addNewEmptyItem, saveMenuToGas, clearOrders,
                     existingOrders, reversedOrders, generateOrderText, copyOrderText, toggleOrderStatus,
