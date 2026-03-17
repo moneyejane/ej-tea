@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EJ午茶小幫手</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --paper-color: #fcf6e5;
+            --ink-color: #111827;
+            --accent-color: #dc2626;
+            --highlight-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0e6d2;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zM32 63c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm57-13c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23dccab1' fill-opacity='0.4' fill-rule='evenodd'/%3E%3C/svg%3E");
+            color: var(--ink-color);
+        }
+
+        .paper-card {
+            background-color: var(--paper-color);
+            border: 2px solid var(--ink-color);
+            border-radius: 2px 255px 3px 25px / 255px 5px 225px 3px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .paper-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 3h1v1H1V3zm2-2h1v1H3V1z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .sketch-btn {
+            border: 2px solid var(--ink-color);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+        .sketch-btn:active { transform: scale(0.96); box-shadow: none; }
+        .sketch-btn-primary { background-color: var(--accent-color); color: white; }
+        .sketch-btn-secondary { background-color: white; color: var(--ink-color); }
+        .sketch-btn-secondary:hover { background-color: var(--ink-color); color: white; }
+
+        .sketch-input {
+            border: 2px solid var(--ink-color);
+            border-radius: 5px 255px 3px 25px / 255px 5px 225px 3px;
+            background: rgba(255,255,255,0.8);
+            padding: 0.5rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .sketch-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; }
+        .scale-enter-active, .scale-leave-active { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scale-enter-from, .scale-leave-to { transform: scale(0.8); }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background-color: #94a3b8; }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen text-gray-800">
+
+    <div id="app" class="max-w-3xl mx-auto relative z-10">
+        <!-- 頂部標題區塊 -->
+        <header class="mb-6 flex justify-between items-center">
+            <div class="cursor-pointer" @click="currentView = 'menu'">
+                <h1 class="text-3xl font-bold tracking-wider transform -rotate-1 text-gray-800 hover:text-red-500 transition-colors">
+                    <i class="fas fa-utensils mr-2 text-red-500"></i>EJ午茶小幫手
+                </h1>
+                <p class="text-sm text-gray-600 mt-1 ml-2 font-medium">今天吃喝什麼？</p>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button v-if="gasUrl || isPreviewMode" @click="currentView = 'admin'" class="sketch-btn sketch-btn-secondary px-3 py-1.5 text-sm shadow hover:shadow-md flex items-center text-purple-600">
+                    <i class="fas fa-magic sm:mr-1"></i><span class="hidden sm:inline font-bold">發起新團購</span>
+                </button>
+                <button @click="showSettings = true" class="sketch-btn sketch-btn-secondary w-10 h-10 flex items-center justify-center text-xl shadow hover:shadow-md" title="設定">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 主內容區 -->
+        <main class="paper-card p-4 md:p-8 min-h-[500px]">
+            <transition name="fade">
+                <div v-if="loading" class="absolute inset-0 z-50 bg-white bg-opacity-80 flex flex-col items-center justify-center rounded-lg backdrop-blur-sm">
+                    <div class="loader mb-4"></div>
+                    <p class="font-bold text-gray-600 animate-pulse">{{ loadingMsg }}</p>
+                </div>
+            </transition>
+
+            <!-- 狀態 0：尚未設定資料庫 -->
+            <transition name="fade" mode="out-in">
+                <div v-if="!gasUrl && !isPreviewMode" class="text-center py-10" key="setup">
+                    <div class="text-6xl text-gray-300 mb-6"><i class="fas fa-store-slash"></i></div>
+                    <h2 class="text-2xl font-bold mb-4">尚未連結資料庫</h2>
+                    <p class="text-gray-600 mb-8 max-w-md mx-auto">請點擊右上角的設定 (⚙️) 輸入 Google Apps Script 網址來啟用系統。</p>
+                    <div class="flex flex-col items-center space-y-4">
+                        <button @click="showSettings = true" class="sketch-btn sketch-btn-primary px-8 py-3 text-lg shadow-lg">
+                            <i class="fas fa-plug mr-2"></i>前往設定
+                        </button>
+                        <button @click="enterPreviewMode" class="text-gray-500 hover:text-gray-800 underline text-sm transition-colors mt-2">
+                            👉 沒有網址？先點此預覽介面 (展示模式)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 狀態 1：瀏覽今日菜單 -->
+                <div v-else-if="currentView === 'menu'" key="menu">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-dashed border-gray-300 pb-4 gap-4">
+                        <h2 class="text-xl font-bold"><i class="fas fa-book-open mr-2 text-yellow-500"></i>今日菜單</h2>
+                        <div class="flex flex-wrap gap-2">
+                            <button @click="currentView = 'orders'" class="sketch-btn sketch-btn-secondary px-3 py-1.5 text-sm shadow flex items-center">
+                                <i class="fas fa-list-ol mr-1 text-blue-500"></i>查看統計
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="menuItems.length === 0" class="text-center py-12 bg-yellow-50 rounded-lg border-2 border-dashed border-yellow-200">
+                        <i class="fas fa-coffee text-4xl text-yellow-300 mb-3"></i>
+                        <p class="text-gray-500 font-medium">目前還沒有菜單<br>請點擊「發起團購」建立今天的菜單吧！</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="item in menuItems" :key="item.id" 
+                             class="bg-white p-4 rounded-lg border-2 border-gray-100 hover:border-red-300 transition-all cursor-pointer relative group transform hover:-translate-y-1 hover:shadow-md" 
+                             @click="addToCart(item)">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800">{{ item.name }}</h3>
+                                    <span class="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{{ item.category }}</span>
+                                </div>
+                                <span class="font-bold text-red-500 text-lg">${{ item.price }}</span>
+                            </div>
+                            <div class="absolute inset-0 bg-red-50 bg-opacity-0 group-hover:bg-opacity-80 transition-all rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-[1px]">
+                                <span class="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md transform scale-90 group-hover:scale-100 transition-transform">
+                                    <i class="fas fa-plus mr-1"></i>加入購物車
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <transition name="scale">
+                        <div v-if="cart.length > 0" class="fixed bottom-6 right-6 z-40">
+                            <button @click="currentView = 'cart'" class="sketch-btn sketch-btn-primary w-16 h-16 rounded-full flex items-center justify-center shadow-2xl text-2xl relative hover:scale-110 transition-transform">
+                                <i class="fas fa-shopping-basket"></i>
+                                <span class="absolute -top-2 -right-2 bg-yellow-400 text-gray-800 text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                                    {{ cartTotalQty }}
+                                </span>
+                            </button>
+                        </div>
+                    </transition>
+                </div>
+
+                <!-- 狀態 2：確認訂單與結帳 -->
+                <div v-else-if="currentView === 'cart'" key="cart">
+                    <div class="flex items-center mb-6 border-b-2 border-dashed border-gray-300 pb-4">
+                        <button @click="currentView = 'menu'" class="text-gray-500 hover:text-gray-800 mr-4 transition-colors p-2 rounded-full hover:bg-gray-100">
+                            <i class="fas fa-arrow-left text-xl"></i>
+                        </button>
+                        <h2 class="text-xl font-bold">我的購物車</h2>
+                    </div>
+
+                    <div v-if="cart.length === 0" class="text-center py-10">
+                        <p class="text-gray-500">購物車空空的，趕快去點餐吧！</p>
+                    </div>
+
+                    <div v-else class="space-y-4 mb-8">
+                        <transition-group name="fade">
+                            <div v-for="(item, index) in cart" :key="index" class="flex justify-between items-center bg-white p-3 rounded-lg border-2 border-gray-100 shadow-sm">
+                                <div class="flex-1">
+                                    <div class="font-bold text-gray-800">{{ item.name }}</div>
+                                    <input v-model="item.note" placeholder="備註 (如：半糖/去冰...)" class="mt-2 w-full text-sm border-b border-gray-300 focus:border-red-400 outline-none bg-transparent transition-colors py-1">
+                                </div>
+                                <div class="flex items-center space-x-2 ml-4 bg-gray-50 rounded-full p-1 border border-gray-200">
+                                    <button @click="updateQty(index, -1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">-</button>
+                                    <span class="font-mono font-bold w-6 text-center text-sm">{{ item.qty }}</span>
+                                    <button @click="updateQty(index, 1)" class="w-8 h-8 rounded-full text-gray-600 hover:bg-white hover:shadow font-bold transition-all">+</button>
+                                </div>
+                                <div class="ml-4 font-bold w-12 text-right text-gray-700">${{ item.price * item.qty }}</div>
+                                <button @click="removeFromCart(index)" class="ml-3 text-gray-300 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </transition-group>
+                    </div>
+
+                    <div class="border-t-2 border-gray-800 pt-6">
+                        <div class="flex justify-between items-end mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                            <div class="text-gray-600 font-medium">總共 <span class="font-bold text-gray-800">{{ cartTotalQty }}</span> 份餐點</div>
+                            <div class="text-3xl font-bold text-red-500">${{ cartTotalPrice }}</div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block font-bold mb-2 text-gray-700">您的暱稱 <span class="text-red-500">*</span></label>
+                            <input v-model="userName" type="text" placeholder="例如：設計部 小明" class="sketch-input w-full text-lg shadow-inner">
+                        </div>
+
+                        <button @click="submitOrder" :disabled="!userName || cart.length === 0" 
+                            class="sketch-btn sketch-btn-primary w-full py-4 text-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center">
+                            <i class="fas fa-paper-plane mr-2"></i>確認送出訂單
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 狀態 3：發起團購 (上傳/編輯菜單) -->
+                <div v-else-if="currentView === 'admin'" key="admin">
+                    <div class="flex items-center justify-between mb-6 border-b-2 border-dashed border-gray-300 pb-4">
+                        <div class="flex items-center">
+                            <button @click="currentView = 'menu'" class="text-gray-500 hover:text-gray-800 mr-4 transition-colors p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-arrow-left text-xl"></i>
+                            </button>
+                            <h2 class="text-xl font-bold">管理與發起</h2>
+                        </div>
+                        <button @click="clearOrders" class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors flex items-center">
+                            <i class="fas fa-trash-alt mr-1"></i> 清空舊訂單
+                        </button>
+                    </div>
+
+                    <div class="mb-8 p-8 bg-white rounded-lg border-2 border-dashed border-gray-300 text-center hover:bg-gray-50 hover:border-blue-400 transition-all relative cursor-pointer group">
+                        <input type="file" ref="fileInput" @change="handleImageUpload" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div v-if="!aiProcessing" class="group-hover:scale-105 transition-transform">
+                            <i class="fas fa-cloud-upload-alt text-5xl text-blue-300 mb-4"></i>
+                            <h3 class="font-bold text-lg mb-1 text-gray-700">上傳實體菜單照片</h3>
+                            <p class="text-sm text-gray-500">將圖片安全傳送至後端，讓 AI 自動辨識建檔</p>
+                            <div class="mt-4 text-xs text-gray-400 bg-gray-100 inline-block px-3 py-1 rounded-full">支援 JPG, PNG</div>
+                        </div>
+                        <div v-else class="flex flex-col items-center">
+                             <div class="loader mb-4"></div>
+                             <p class="text-sm font-bold text-blue-500 animate-pulse">AI 正在後台努力閱讀菜單中，請稍候...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h3 class="font-bold mb-4 flex justify-between items-center text-gray-800">
+                            菜單編輯區
+                            <button @click="addNewEmptyItem" class="text-sm text-blue-600 hover:text-blue-800 font-bold bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded transition-colors shadow-sm">
+                                <i class="fas fa-plus mr-1"></i>手動新增一列
+                            </button>
+                        </h3>
+
+                        <div v-if="newMenuItems.length === 0" class="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg mb-6 bg-white">
+                            <i class="fas fa-keyboard text-3xl mb-2 text-gray-300"></i>
+                            <p class="font-medium">目前還沒有品項</p>
+                            <p class="text-xs mt-1">請上傳照片讓 AI 幫您輸入，或點擊右上角「手動新增一列」</p>
+                        </div>
+                        
+                        <div v-else class="space-y-3 mb-6 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                            <div v-for="(item, idx) in newMenuItems" :key="idx" class="flex space-x-2 items-center bg-white p-2 rounded shadow-sm border border-gray-100">
+                                <span class="text-gray-400 font-mono text-xs w-4">{{ idx + 1 }}</span>
+                                <input v-model="item.name" placeholder="品名 (例如：紅茶)" class="sketch-input flex-1 min-w-0 py-1 text-sm">
+                                <input v-model="item.price" type="number" placeholder="金額" class="sketch-input w-24 text-center py-1 text-sm font-mono">
+                                <button @click="newMenuItems.splice(idx, 1)" class="text-gray-300 hover:text-red-500 p-2 transition-colors"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        
+                        <div v-if="newMenuItems.length > 0" class="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm font-bold flex items-center shadow-sm">
+                            <i class="fas fa-exclamation-triangle mr-2 text-red-500 text-xl"></i>
+                            <span>注意：點擊發布後，系統將會自動<span class="text-red-600 underline">清空上一輪的所有訂單紀錄</span>喔！</span>
+                        </div>
+                        
+                        <button @click="saveMenuToGas" :disabled="newMenuItems.length === 0" class="sketch-btn sketch-btn-primary w-full py-3 shadow-md text-lg flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fas fa-save mr-2"></i>儲存並發布新菜單
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 狀態 4：訂單統計 -->
+                <div v-else-if="currentView === 'orders'" key="orders">
+                    <div class="relative flex items-center justify-center mb-6 border-b-2 border-dashed border-gray-300 pb-4">
+                        <button @click="currentView = 'menu'" class="absolute left-0 text-gray-500 hover:text-gray-800 transition-colors flex items-center px-2 py-1.5 rounded-lg hover:bg-gray-100" title="返回菜單點餐">
+                            <i class="fas fa-arrow-left text-lg mr-1.5"></i>
+                            <span class="text-sm font-bold hidden sm:inline">返回菜單點餐</span>
+                        </button>
+                        <h2 class="text-xl font-bold">訂單即時統計</h2>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <div class="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-sm h-full flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-clipboard-list mr-2 text-green-500"></i>給店家的清單</h3>
+                                    <button @click="copyOrderText" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded transition-colors flex items-center font-medium">
+                                        <i class="far fa-copy mr-1"></i>複製文字
+                                    </button>
+                                </div>
+                                <div class="relative flex-1">
+                                    <pre class="whitespace-pre-wrap text-sm font-mono bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-gray-800 h-64 overflow-y-auto w-full absolute inset-0 custom-scrollbar">{{ generateOrderText }}</pre>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                             <div class="flex justify-between items-center mb-4">
+                                 <h3 class="font-bold text-lg text-gray-800"><i class="fas fa-users mr-2 text-blue-500"></i>明細 ({{ existingOrders.length }} 筆)</h3>
+                             </div>
+                             <div class="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+                                 <div class="max-h-[280px] overflow-y-auto custom-scrollbar">
+                                     <table class="w-full text-sm text-left">
+                                         <thead class="bg-gray-50 font-bold text-gray-600 sticky top-0 shadow-sm z-10">
+                                             <tr>
+                                                 <th class="p-3 border-b">訂購人</th>
+                                                 <th class="p-3 border-b">品項內容</th>
+                                                 <th class="p-3 text-right border-b">金額</th>
+                                                 <th class="p-3 text-center border-b w-16">付款</th>
+                                                 <th class="p-3 text-center border-b w-16">領餐</th>
+                                             </tr>
+                                         </thead>
+                                         <tbody>
+                                             <tr v-if="reversedOrders.length === 0">
+                                                 <td colspan="5" class="p-6 text-center text-gray-400">目前還沒有人點餐</td>
+                                             </tr>
+                                             <tr v-for="(order, idx) in reversedOrders" :key="idx" class="border-b border-gray-50 hover:bg-yellow-50/50 transition-colors">
+                                                 <td class="p-3 font-medium text-gray-700">{{ order.user }}</td>
+                                                 <td class="p-3">
+                                                     <div class="text-gray-800">{{ order.item }} <span class="text-xs text-gray-500 ml-1">x{{ order.qty }}</span></div>
+                                                     <div v-if="order.note" class="text-xs text-orange-500 mt-0.5"><i class="fas fa-info-circle mr-1"></i>{{ order.note }}</div>
+                                                 </td>
+                                                 <td class="p-3 text-right font-mono font-bold text-gray-700">${{ order.item_price || '-' }}</td>
+                                                 <td class="p-3 text-center">
+                                                     <button @click="toggleOrderStatus(order, 'paid')"
+                                                             :class="order.paid ? 'bg-green-600 text-white border-green-700 shadow-md' : 'bg-gray-100 text-gray-500 border-gray-400 hover:bg-gray-200'"
+                                                             class="border-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap active:scale-95">
+                                                         {{ order.paid ? '已付' : '未付' }}
+                                                     </button>
+                                                 </td>
+                                                 <td class="p-3 text-center">
+                                                     <button @click="toggleOrderStatus(order, 'received')"
+                                                             :class="order.received ? 'bg-blue-600 text-white border-blue-700 shadow-md' : 'bg-gray-100 text-gray-500 border-gray-400 hover:bg-gray-200'"
+                                                             class="border-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap active:scale-95">
+                                                         {{ order.received ? '已領' : '未領' }}
+                                                     </button>
+                                                 </td>
+                                             </tr>
+                                         </tbody>
+                                     </table>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+        </main>
+
+        <!-- 設定視窗 Modal (極簡版) -->
+        <transition name="modal">
+            <div v-if="showSettings" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity" @click="showSettings = false"></div>
+                <div class="paper-card bg-white w-full max-w-lg p-6 relative z-10 transform scale-100 transition-transform">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-xl font-bold flex items-center text-gray-800"><i class="fas fa-cogs mr-2 text-gray-500"></i>系統設定</h3>
+                        <button @click="showSettings = false" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <label class="block text-sm font-bold mb-2 text-gray-700">GAS Web App URL (資料庫連線)</label>
+                        <input v-model="tempGasUrl" type="password" placeholder="貼上 https://script.google.com/macros/s/..." class="sketch-input w-full text-sm font-mono">
+                        <p class="text-xs text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i>必須填寫才能讀寫試算表資料。</p>
+                        <!-- AI 授權金鑰的提示移除了，因為現在絕對安全地藏在後端了 -->
+                    </div>
+
+                    <div v-if="gasUrl" class="border-t-2 border-dashed border-gray-200 pt-5 mb-6">
+                        <h4 class="font-bold mb-3 text-sm text-gray-800 flex items-center"><i class="fas fa-share-alt mr-2 text-blue-500"></i>分享連結給同事</h4>
+                        <div class="flex items-center space-x-2 mb-4 bg-white p-1 rounded-lg border border-gray-300">
+                            <input :value="shareUrl" readonly class="w-full text-xs bg-transparent text-gray-500 font-mono outline-none px-2 py-1 truncate">
+                            <button @click="copyShareUrl" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-bold transition-colors whitespace-nowrap">
+                                複製
+                            </button>
+                        </div>
+                        <div class="flex justify-center">
+                            <div class="bg-white p-3 border-2 border-gray-200 rounded-xl shadow-sm">
+                                <img :src="qrCodeUrl" alt="QR Code" class="w-32 h-32 object-contain" v-if="qrCodeUrl">
+                                <div v-else class="w-32 h-32 flex items-center justify-center text-gray-300"><i class="fas fa-qrcode text-4xl"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
+                        <button @click="clearSettings" class="text-gray-400 hover:text-red-500 text-sm font-medium transition-colors flex items-center">
+                            <i class="fas fa-eraser mr-1"></i>清除重置
+                        </button>
+                        <div class="flex space-x-3">
+                            <button @click="showSettings = false" class="sketch-btn sketch-btn-secondary px-5 py-2 text-sm">取消</button>
+                            <button @click="saveSettings" class="sketch-btn sketch-btn-primary px-5 py-2 text-sm flex items-center">
+                                <i class="fas fa-link mr-1"></i>儲存並連線
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <transition name="scale">
+            <div v-if="msgModal.show" class="fixed top-10 left-1/2 transform -translate-x-1/2 z-[200] flex items-center justify-center p-4 pointer-events-none">
+                <div class="bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl flex items-center space-x-3 pointer-events-auto">
+                    <i v-if="msgModal.type === 'success'" class="fas fa-check-circle text-green-400 text-lg"></i>
+                    <i v-else-if="msgModal.type === 'error'" class="fas fa-exclamation-circle text-red-400 text-lg"></i>
+                    <i v-else class="fas fa-info-circle text-blue-400 text-lg"></i>
+                    <span class="font-bold text-sm tracking-wide">{{ msgModal.text }}</span>
+                </div>
+            </div>
+        </transition>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // ⭐ 系統預設連線設定 (發起人設定區) ⭐
+        // 1. 將部署好的 Google Apps Script 網址貼在下方引號內
+        // 2. 您的 AI API Key 現在已經安全地移到了 Google Apps Script 程式碼中！
+        // ==========================================
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzMmghmsguKrhEOYy7oGycnZ5KwT5zYlGlAuunDaUiqhxbC4cVny8xNyRVPDEbgtl684A/exec"; 
+
+        const { createApp, ref, computed, onMounted, reactive } = Vue;
+
+        createApp({
+            setup() {
+                const currentView = ref('menu');
+                const loading = ref(false);
+                const loadingMsg = ref('');
+                const showSettings = ref(false);
+                
+                const gasUrl = ref('');
+                const tempGasUrl = ref('');
+                
+                const menuItems = ref([]);
+                const existingOrders = ref([]);
+                const reversedOrders = computed(() => [...existingOrders.value].reverse());
+                const cart = ref([]);
+                const userName = ref('');
+                
+                const aiProcessing = ref(false);
+                const newMenuItems = ref([]);
+                const fileInput = ref(null);
+                const isPreviewMode = ref(false);
+
+                const msgModal = reactive({ show: false, text: '', type: 'info' });
+                let msgTimeout = null;
+                const showMsg = (text, type = 'success') => {
+                    if(msgTimeout) clearTimeout(msgTimeout);
+                    msgModal.text = text; msgModal.type = type; msgModal.show = true;
+                    msgTimeout = setTimeout(() => msgModal.show = false, 3000);
+                };
+
+                onMounted(() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const configParam = urlParams.get('config');
+
+                    if (configParam) {
+                        try {
+                            const decoded = atob(configParam);
+                            if (decoded.includes('script.google.com')) {
+                                gasUrl.value = decoded;
+                                localStorage.setItem('office_eats_gas_url', decoded);
+                                window.history.replaceState({}, document.title, window.location.pathname);
+                            }
+                        } catch (e) {}
+                    } else {
+                        gasUrl.value = localStorage.getItem('office_eats_gas_url') || DEFAULT_GAS_URL;
+                    }
+                    
+                    tempGasUrl.value = gasUrl.value;
+
+                    if (gasUrl.value) {
+                        fetchData();
+                    }
+                });
+
+                const enterPreviewMode = () => {
+                    isPreviewMode.value = true;
+                    loadDemoData();
+                    showMsg('已進入預覽模式 (此模式下資料不會真的儲存喔！)', 'info');
+                };
+
+                const loadDemoData = () => {
+                    menuItems.value = [
+                        { id: 1, name: '招牌珍珠奶茶', price: 50, category: '茶飲' },
+                        { id: 2, name: '烤雞腿排便當', price: 110, category: '便當' }
+                    ];
+                    existingOrders.value = [
+                        { rowIdx: 2, user: '小明', item: '招牌珍珠奶茶', qty: 1, note: '半糖少冰', item_price: 50, paid: true, received: false }
+                    ];
+                };
+
+                const fetchData = async () => {
+                    if (!gasUrl.value) return;
+                    loading.value = true;
+                    loadingMsg.value = '正在與試算表同步資料...';
+                    try {
+                        const res = await fetch(`${gasUrl.value}?action=get_data`);
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            menuItems.value = data.menu;
+                            existingOrders.value = data.orders;
+                        } else {
+                            showMsg('資料同步失敗：' + data.message, 'error');
+                        }
+                    } catch (e) {
+                        showMsg('無法連線至資料庫，請檢查網址', 'error');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const addToCart = (item) => {
+                    const existing = cart.value.find(c => c.name === item.name && !c.note);
+                    if (existing) existing.qty++;
+                    else cart.value.push({ ...item, qty: 1, note: '' });
+                    showMsg(`已將 ${item.name} 加入購物車`);
+                };
+
+                const updateQty = (idx, delta) => {
+                    cart.value[idx].qty += delta;
+                    if (cart.value[idx].qty <= 0) cart.value.splice(idx, 1);
+                };
+
+                const removeFromCart = (idx) => cart.value.splice(idx, 1);
+                const cartTotalQty = computed(() => cart.value.reduce((acc, item) => acc + item.qty, 0));
+                const cartTotalPrice = computed(() => cart.value.reduce((acc, item) => acc + (item.price * item.qty), 0));
+
+                const submitOrder = async () => {
+                    if (!userName.value.trim()) return showMsg('請輸入您的暱稱喔！', 'error');
+                    if (!gasUrl.value) {
+                        showMsg('【預覽模式】訂單模擬送出成功！');
+                        existingOrders.value.push(...cart.value.map((c, idx) => ({
+                            rowIdx: existingOrders.value.length + idx + 2,
+                            user: userName.value, item: c.name, qty: c.qty, note: c.note, item_price: c.price * c.qty,
+                            paid: false, received: false
+                        })));
+                        cart.value = [];
+                        currentView.value = 'orders';
+                        return;
+                    }
+
+                    loading.value = true;
+                    loadingMsg.value = '訂單火箭發射中...';
+                    try {
+                        const res = await fetch(gasUrl.value, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'submit_order', order: { user: userName.value, items: cart.value }})
+                        });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            showMsg('點餐成功！可以去統計頁面查看囉。');
+                            cart.value = [];
+                            currentView.value = 'orders';
+                            fetchData();
+                        }
+                    } catch (e) { showMsg('糟糕，訂單送出失敗了', 'error'); } 
+                    finally { loading.value = false; }
+                };
+
+                const addNewEmptyItem = () => newMenuItems.value.push({ name: '', price: null, category: '手動新增' });
+
+                const handleImageUpload = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    aiProcessing.value = true;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            let width = img.width, height = img.height;
+                            const MAX_WIDTH = 800;
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                            canvas.width = width; canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                            
+                            // ⭐ 新增：將圖片直接丟給後端 (GAS)，不再直接呼叫 Gemini
+                            analyzeMenuWithGAS(base64);
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                };
+
+                // ⭐ 新增：將 Base64 發送到您的 GAS 後端進行分析
+                const analyzeMenuWithGAS = async (base64Image) => {
+                    if (!gasUrl.value) {
+                        showMsg('請先設定資料庫網址才能使用 AI 辨識', 'error');
+                        aiProcessing.value = false;
+                        if(fileInput.value) fileInput.value.value = '';
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(gasUrl.value, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'analyze_menu',
+                                image: base64Image
+                            })
+                        });
+                        const data = await res.json();
+                        
+                        if (data.status === 'success') {
+                            newMenuItems.value = data.items.map(i => ({...i, category: 'AI視覺解析'}));
+                            showMsg('AI 成功將菜單轉為文字囉！');
+                        } else {
+                            throw new Error(data.message || '辨識失敗');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        showMsg('AI 辨識失敗：' + e.message, 'error');
+                        newMenuItems.value = [{ name: '測試品項一', price: 50 }, { name: '測試品項二', price: 60 }];
+                    } finally {
+                        aiProcessing.value = false;
+                        if(fileInput.value) fileInput.value.value = '';
+                    }
+                };
+
+                const saveMenuToGas = async () => {
+                    const validItems = newMenuItems.value.filter(i => i.name && i.price);
+                    if(validItems.length === 0) return showMsg('至少需要輸入一個完整的品項', 'error');
+
+                    if (!gasUrl.value) {
+                        showMsg('【預覽模式】菜單發布成功！舊訂單已自動清空。');
+                        menuItems.value = validItems;
+                        currentView.value = 'menu';
+                        newMenuItems.value = [];
+                        existingOrders.value = [];
+                        return;
+                    }
+
+                    loading.value = true;
+                    loadingMsg.value = '正在發布新菜單並準備新的一局...';
+                    try {
+                        const res = await fetch(gasUrl.value, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'save_menu', items: validItems })
+                        });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            await fetch(gasUrl.value, { method: 'POST', body: JSON.stringify({ action: 'clear_orders' }) });
+                            showMsg('新菜單發布成功！舊的訂單紀錄已為您自動清空。');
+                            newMenuItems.value = [];
+                            currentView.value = 'menu';
+                            fetchData();
+                        }
+                    } catch (e) { showMsg('儲存失敗，請重試', 'error'); } 
+                    finally { loading.value = false; }
+                };
+
+                const clearOrders = async () => {
+                    if (!gasUrl.value) { existingOrders.value = []; return showMsg('【預覽模式】舊訂單已清空'); }
+                    loading.value = true;
+                    try {
+                        await fetch(gasUrl.value, { method: 'POST', body: JSON.stringify({ action: 'clear_orders' }) });
+                        showMsg('訂單紀錄已清空');
+                        existingOrders.value = [];
+                    } catch(e) { showMsg('清空失敗', 'error'); } 
+                    finally { loading.value = false; }
+                };
+
+                const generateOrderText = computed(() => {
+                    if (existingOrders.value.length === 0) return '目前尚無訂單資料可以提供給店家。';
+                    const summary = {};
+                    existingOrders.value.forEach(o => {
+                        const key = `${o.item} ${o.note ? '('+o.note+')' : ''}`;
+                        summary[key] = (summary[key] || 0) + Number(o.qty);
+                    });
+                    let text = `📅 辦公室團購清單\n───────────────────\n`;
+                    for (const [name, qty] of Object.entries(summary)) text += `☑ ${name} x ${qty}\n`;
+                    const totalItems = existingOrders.value.reduce((a,b)=>a+Number(b.qty),0);
+                    const totalPrice = existingOrders.value.reduce((a,b)=>a+Number(b.item_price || 0),0);
+                    text += `───────────────────\n📍 總份數: ${totalItems} 份\n💰 預估金額: $${totalPrice}`;
+                    return text;
+                });
+
+                const copyOrderText = () => {
+                    try {
+                        const el = document.createElement('textarea');
+                        el.value = generateOrderText.value;
+                        el.setAttribute('readonly', '');
+                        el.style.position = 'absolute';
+                        el.style.left = '-9999px';
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        showMsg('已為您複製給店家的清單！');
+                    } catch (e) {
+                        showMsg('複製失敗，請手動全選複製', 'error');
+                    }
+                };
+
+                const toggleOrderStatus = async (order, field) => {
+                    order[field] = !order[field];
+                    if (!gasUrl.value) return showMsg(`【預覽模式】狀態已更新`, 'success');
+                    try {
+                        const res = await fetch(gasUrl.value, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'update_order_status', rowIdx: order.rowIdx, field: field, value: order[field] })
+                        });
+                        const data = await res.json();
+                        if (data.status !== 'success') throw new Error(data.message);
+                    } catch (e) {
+                        order[field] = !order[field];
+                        showMsg('狀態更新失敗，請檢查網路', 'error');
+                    }
+                };
+
+                const saveSettings = () => {
+                    if (!tempGasUrl.value.trim()) return showMsg('資料庫網址不可以是空的喔！', 'error');
+                    if (!tempGasUrl.value.includes('script.google.com')) return showMsg('網址格式看起來不太對喔', 'error');
+                    
+                    gasUrl.value = tempGasUrl.value;
+                    localStorage.setItem('office_eats_gas_url', gasUrl.value);
+                    showSettings.value = false;
+                    showMsg('設定儲存成功！開始連線...');
+                    fetchData();
+                };
+
+                const clearSettings = () => {
+                    localStorage.clear();
+                    gasUrl.value = ''; tempGasUrl.value = '';
+                    menuItems.value = []; existingOrders.value = []; cart.value = [];
+                    showSettings.value = false;
+                    showMsg('設定已全部清除，回到初始狀態');
+                };
+
+                const shareUrl = computed(() => {
+                    if (!gasUrl.value) return '';
+                    return `${window.location.href.split('?')[0]}?config=${btoa(gasUrl.value)}`;
+                });
+                const qrCodeUrl = computed(() => shareUrl.value ? `https://quickchart.io/qr?text=${encodeURIComponent(shareUrl.value)}&size=300&margin=1` : '');
+                const copyShareUrl = async () => {
+                    try { 
+                        const el = document.createElement('textarea');
+                        el.value = shareUrl.value;
+                        el.setAttribute('readonly', '');
+                        el.style.position = 'absolute';
+                        el.style.left = '-9999px';
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        showMsg('專屬分享連結已複製！快貼到群組吧。'); 
+                    } catch (e) { 
+                        showMsg('複製失敗，請手動全選複製', 'error'); 
+                    }
+                };
+
+                return {
+                    currentView, gasUrl, loading, loadingMsg, 
+                    showSettings, tempGasUrl, menuItems, cart, userName, cartTotalQty, cartTotalPrice,
+                    addToCart, updateQty, removeFromCart, submitOrder,
+                    handleImageUpload, newMenuItems, aiProcessing, addNewEmptyItem, saveMenuToGas, clearOrders,
+                    existingOrders, reversedOrders, generateOrderText, copyOrderText, toggleOrderStatus,
+                    saveSettings, clearSettings, shareUrl, qrCodeUrl, copyShareUrl, msgModal, fileInput,
+                    isPreviewMode, enterPreviewMode
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
