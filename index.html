@@ -387,11 +387,11 @@
                         <button @click="showSettings = false" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
                     </div>
                     
-                    <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <!-- 修改：加入 v-if="!gasUrl"，當網址已經寫死或設定好時，自動隱藏這個輸入框 -->
+                    <div v-if="!gasUrl" class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <label class="block text-sm font-bold mb-2 text-gray-700">GAS Web App URL (資料庫連線)</label>
                         <input v-model="tempGasUrl" type="password" placeholder="貼上 https://script.google.com/macros/s/..." class="sketch-input w-full text-sm font-mono">
                         <p class="text-xs text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i>必須填寫才能讀寫試算表資料。</p>
-                        <!-- AI 授權金鑰的提示移除了，因為現在絕對安全地藏在後端了 -->
                     </div>
 
                     <div v-if="gasUrl" class="border-t-2 border-dashed border-gray-200 pt-5 mb-6">
@@ -415,8 +415,9 @@
                             <i class="fas fa-eraser mr-1"></i>清除重置
                         </button>
                         <div class="flex space-x-3">
-                            <button @click="showSettings = false" class="sketch-btn sketch-btn-secondary px-5 py-2 text-sm">取消</button>
-                            <button @click="saveSettings" class="sketch-btn sketch-btn-primary px-5 py-2 text-sm flex items-center">
+                            <button @click="showSettings = false" class="sketch-btn sketch-btn-secondary px-5 py-2 text-sm">關閉</button>
+                            <!-- 修改：如果沒有網址才顯示「儲存並連線」按鈕 -->
+                            <button v-if="!gasUrl" @click="saveSettings" class="sketch-btn sketch-btn-primary px-5 py-2 text-sm flex items-center">
                                 <i class="fas fa-link mr-1"></i>儲存並連線
                             </button>
                         </div>
