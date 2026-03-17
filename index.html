@@ -518,13 +518,21 @@
                     ];
                 };
 
+                // ⭐ 加入強化版的錯誤捕捉
                 const fetchData = async () => {
                     if (!gasUrl.value) return;
                     loading.value = true;
                     loadingMsg.value = '正在與試算表同步資料...';
                     try {
                         const res = await fetch(`${gasUrl.value}?action=get_data`);
-                        const data = await res.json();
+                        const text = await res.text();
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch(e) {
+                            throw new Error('資料庫網址錯誤，或未設定為「任何人」。請檢查網址是否以 /exec 結尾！');
+                        }
+
                         if (data.status === 'success') {
                             menuItems.value = data.menu;
                             existingOrders.value = data.orders;
@@ -532,7 +540,8 @@
                             showMsg('資料同步失敗：' + data.message, 'error');
                         }
                     } catch (e) {
-                        showMsg('無法連線至資料庫，請檢查網址', 'error');
+                        showMsg(e.message || '無法連線至資料庫，請檢查網址', 'error');
+                        gasUrl.value = ''; // 若連線失敗，清空錯誤的網址讓使用者重設
                     } finally {
                         loading.value = false;
                     }
@@ -547,7 +556,6 @@
                     }
                     showMsg(`已將 ${item.name} 加入購物車`);
                     
-                    // ⭐ 新增這行：點擊後自動跳轉到購物車 (結帳) 畫面
                     currentView.value = 'cart';
                 };
 
@@ -612,7 +620,6 @@
                             ctx.drawImage(img, 0, 0, width, height);
                             const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
                             
-                            // ⭐ 新增：將圖片直接丟給後端 (GAS)，不再直接呼叫 Gemini
                             analyzeMenuWithGAS(base64);
                         };
                         img.src = e.target.result;
@@ -620,7 +627,7 @@
                     reader.readAsDataURL(file);
                 };
 
-                // ⭐ 新增：將 Base64 發送到您的 GAS 後端進行分析
+                // ⭐ 強化版錯誤捕捉：精準攔截 HTML 報錯
                 const analyzeMenuWithGAS = async (base64Image) => {
                     if (!gasUrl.value) {
                         showMsg('請先設定資料庫網址才能使用 AI 辨識', 'error');
@@ -637,7 +644,14 @@
                                 image: base64Image
                             })
                         });
-                        const data = await res.json();
+                        
+                        const text = await res.text();
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch(err) {
+                            throw new Error('資料庫權限或網址錯誤！請確認部署網址以 /exec 結尾，且權限設為「所有人」');
+                        }
                         
                         if (data.status === 'success') {
                             newMenuItems.value = data.items.map(i => ({...i, category: 'AI視覺解析'}));
