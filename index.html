@@ -407,12 +407,13 @@
                         <div>
                             <label class="block text-sm font-bold mb-2 text-gray-700">尺寸 / 升級</label>
                             <div class="flex flex-wrap gap-2 mb-2">
-                                <button @click="setSize('M (標準)', 0)" :class="itemOptions.size === 'M (標準)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">M (標準)</button>
-                                <button @click="setSize('L 大杯', 10)" :class="itemOptions.size === 'L 大杯' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">L 大杯 (+$10)</button>
+                                <button @click="setSize('L (標準)', 0)" :class="itemOptions.size === 'L (標準)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">L (標準)</button>
+                                <button @click="setSize('M (中杯)', -5)" :class="itemOptions.size === 'M (中杯)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">M 中杯 (-$5)</button>
                             </div>
                             <div class="flex items-center space-x-2 mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                                 <span class="text-sm text-gray-600 font-medium whitespace-nowrap">加料 (另填加價金額) $</span>
-                                <input v-model="itemOptions.customExtraPrice" type="number" min="0" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
+                                <!-- 移除了 min="0" 的限制，讓輸入框更自由 -->
+                                <input v-model="itemOptions.customExtraPrice" type="number" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
                             </div>
                         </div>
 
@@ -565,7 +566,7 @@
                 // 新增：客製化餐點選項 (修正了價格疊加邏輯)
                 const activeItem = ref(null);
                 const itemOptions = reactive({
-                    size: 'M (標準)',
+                    size: 'L (標準)',
                     sizeExtraPrice: 0,
                     customExtraPrice: 0,
                     sugar: '',
@@ -672,7 +673,7 @@
 
                 const openItemModal = (item) => {
                     activeItem.value = item;
-                    itemOptions.size = 'M (標準)';
+                    itemOptions.size = 'L (標準)';
                     itemOptions.sizeExtraPrice = 0;
                     itemOptions.customExtraPrice = 0;
                     itemOptions.sugar = '';
@@ -689,7 +690,7 @@
                     if (!activeItem.value) return;
 
                     let finalName = activeItem.value.name;
-                    if (itemOptions.size && itemOptions.size !== 'M (標準)') {
+                    if (itemOptions.size && itemOptions.size !== 'L (標準)') {
                         finalName += ` - ${itemOptions.size}`;
                     }
                     
