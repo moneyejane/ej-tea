@@ -412,8 +412,7 @@
                             </div>
                             <div class="flex items-center space-x-2 mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
                                 <span class="text-sm text-gray-600 font-medium whitespace-nowrap">加料 (另填加價金額) $</span>
-                                <!-- 移除了 min="0" 的限制，讓輸入框更自由 -->
-                                <input v-model="itemOptions.customExtraPrice" type="number" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
+                                <input v-model="itemOptions.customExtraPrice" type="number" step="5" min="0" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
                             </div>
                         </div>
 
