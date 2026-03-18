@@ -397,7 +397,7 @@
                     <div class="flex justify-between items-start mb-4 border-b-2 border-gray-100 pb-3">
                         <div>
                             <h3 class="text-xl font-bold text-gray-800">{{ activeItem.name }}</h3>
-                            <p class="text-red-500 font-bold text-lg mt-1">${{ activeItem.price + Number(itemOptions.customExtraPrice || 0) }}</p>
+                            <p class="text-red-500 font-bold text-lg mt-1">${{ activeItem.price + itemOptions.sizeExtraPrice + Number(itemOptions.customExtraPrice || 0) }}</p>
                         </div>
                         <button @click="activeItem = null" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
                     </div>
@@ -408,13 +408,11 @@
                             <label class="block text-sm font-bold mb-2 text-gray-700">尺寸 / 升級</label>
                             <div class="flex flex-wrap gap-2 mb-2">
                                 <button @click="setSize('M (標準)', 0)" :class="itemOptions.size === 'M (標準)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">M (標準)</button>
-                                <button @click="setSize('L (大杯)', 10)" :class="itemOptions.size === 'L (大杯)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">L 大杯 (+$10)</button>
-                                <button @click="setSize('加大/加麵', 15)" :class="itemOptions.size === '加大/加麵' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">加大/加麵 (+$15)</button>
+                                <button @click="setSize('L 大杯', 10)" :class="itemOptions.size === 'L 大杯' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">L 大杯 (+$10)</button>
                             </div>
                             <div class="flex items-center space-x-2 mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                <span class="text-sm text-gray-600 font-medium">自訂額外加價 $</span>
+                                <span class="text-sm text-gray-600 font-medium whitespace-nowrap">加料 (另填加價金額) $</span>
                                 <input v-model="itemOptions.customExtraPrice" type="number" min="0" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
-                                <span class="text-xs text-gray-400">(如：加珍珠/加料)</span>
                             </div>
                         </div>
 
@@ -564,10 +562,11 @@
                 const storeName = ref('');
                 const newStoreName = ref('');
 
-                // 新增：客製化餐點選項
+                // 新增：客製化餐點選項 (修正了價格疊加邏輯)
                 const activeItem = ref(null);
                 const itemOptions = reactive({
                     size: 'M (標準)',
+                    sizeExtraPrice: 0,
                     customExtraPrice: 0,
                     sugar: '',
                     ice: '',
@@ -674,6 +673,7 @@
                 const openItemModal = (item) => {
                     activeItem.value = item;
                     itemOptions.size = 'M (標準)';
+                    itemOptions.sizeExtraPrice = 0;
                     itemOptions.customExtraPrice = 0;
                     itemOptions.sugar = '';
                     itemOptions.ice = '';
@@ -682,7 +682,7 @@
 
                 const setSize = (size, extraPrice) => {
                     itemOptions.size = size;
-                    itemOptions.customExtraPrice = extraPrice;
+                    itemOptions.sizeExtraPrice = extraPrice;
                 };
 
                 const confirmAddItem = () => {
@@ -699,7 +699,7 @@
                     if (itemOptions.note) finalNoteArr.push(itemOptions.note);
                     
                     const finalNote = finalNoteArr.join(', ');
-                    const finalPrice = activeItem.value.price + Number(itemOptions.customExtraPrice || 0);
+                    const finalPrice = activeItem.value.price + itemOptions.sizeExtraPrice + Number(itemOptions.customExtraPrice || 0);
 
                     const cartItem = {
                         name: finalName,
