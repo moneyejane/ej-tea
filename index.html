@@ -161,7 +161,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div v-for="item in menuItems" :key="item.id" 
                              class="bg-white p-4 rounded-lg border-2 border-gray-100 hover:border-red-300 transition-all cursor-pointer relative flex justify-between items-center group active:scale-95 shadow-sm" 
-                             @click="addToCart(item)">
+                             @click="openItemModal(item)">
                             <div>
                                 <h3 class="font-bold text-lg text-gray-800">{{ item.name }}</h3>
                                 <span class="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{{ item.category }}</span>
@@ -389,6 +389,74 @@
             </transition>
         </main>
 
+        <!-- 新增：餐點客製化 Modal (選擇尺寸/甜度/冰塊) -->
+        <transition name="modal">
+            <div v-if="activeItem" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity" @click="activeItem = null"></div>
+                <div class="paper-card bg-white w-full max-w-md p-6 relative z-10 transform scale-100 transition-transform">
+                    <div class="flex justify-between items-start mb-4 border-b-2 border-gray-100 pb-3">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">{{ activeItem.name }}</h3>
+                            <p class="text-red-500 font-bold text-lg mt-1">${{ activeItem.price + Number(itemOptions.customExtraPrice || 0) }}</p>
+                        </div>
+                        <button @click="activeItem = null" class="text-gray-400 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <div class="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 space-y-5 text-left">
+                        <!-- 份量/加價 -->
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">尺寸 / 升級</label>
+                            <div class="flex flex-wrap gap-2 mb-2">
+                                <button @click="setSize('M (標準)', 0)" :class="itemOptions.size === 'M (標準)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">M (標準)</button>
+                                <button @click="setSize('L (大杯)', 10)" :class="itemOptions.size === 'L (大杯)' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">L 大杯 (+$10)</button>
+                                <button @click="setSize('加大/加麵', 15)" :class="itemOptions.size === '加大/加麵' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600'" class="px-3 py-1.5 rounded-full text-sm font-bold transition-colors">加大/加麵 (+$15)</button>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-2 bg-gray-50 p-2 rounded-lg border border-gray-100">
+                                <span class="text-sm text-gray-600 font-medium">自訂額外加價 $</span>
+                                <input v-model="itemOptions.customExtraPrice" type="number" min="0" class="sketch-input w-24 text-center py-1 text-sm font-mono shadow-inner">
+                                <span class="text-xs text-gray-400">(如：加珍珠/加料)</span>
+                            </div>
+                        </div>
+
+                        <!-- 甜度 -->
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">甜度 <span class="text-xs font-normal text-gray-400">(飲料選填)</span></label>
+                            <div class="flex flex-wrap gap-2">
+                                <button v-for="s in ['正常糖', '少糖', '半糖', '微糖', '無糖']" :key="s" 
+                                    @click="itemOptions.sugar = itemOptions.sugar === s ? '' : s"
+                                    :class="itemOptions.sugar === s ? 'bg-blue-500 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200'" 
+                                    class="px-3 py-1.5 rounded-lg text-sm border-2 font-medium transition-all active:scale-95">{{ s }}</button>
+                            </div>
+                        </div>
+
+                        <!-- 冰塊 -->
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">冰塊 <span class="text-xs font-normal text-gray-400">(飲料選填)</span></label>
+                            <div class="flex flex-wrap gap-2">
+                                <button v-for="i in ['正常冰', '少冰', '微冰', '去冰', '完全去冰', '溫', '熱']" :key="i" 
+                                    @click="itemOptions.ice = itemOptions.ice === i ? '' : i"
+                                    :class="itemOptions.ice === i ? 'bg-blue-500 text-white border-blue-600 shadow-sm' : 'bg-white text-gray-600 border-gray-200'" 
+                                    class="px-3 py-1.5 rounded-lg text-sm border-2 font-medium transition-all active:scale-95">{{ i }}</button>
+                            </div>
+                        </div>
+
+                        <!-- 備註/加料 -->
+                        <div>
+                            <label class="block text-sm font-bold mb-2 text-gray-700">加料 / 其他備註</label>
+                            <input v-model="itemOptions.note" type="text" placeholder="例如：加珍珠、波霸、不加蔥..." class="sketch-input w-full text-sm shadow-inner">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-200 flex space-x-3">
+                        <button @click="activeItem = null" class="sketch-btn sketch-btn-secondary flex-1 py-3 text-sm">取消</button>
+                        <button @click="confirmAddItem" class="sketch-btn sketch-btn-primary flex-[2] py-3 text-sm flex items-center justify-center text-lg">
+                            <i class="fas fa-cart-plus mr-2"></i> 加入購物車
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
         <!-- 新增：密碼輸入 Modal -->
         <transition name="modal">
             <div v-if="showPasswordModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -496,6 +564,16 @@
                 const storeName = ref('');
                 const newStoreName = ref('');
 
+                // 新增：客製化餐點選項
+                const activeItem = ref(null);
+                const itemOptions = reactive({
+                    size: 'M (標準)',
+                    customExtraPrice: 0,
+                    sugar: '',
+                    ice: '',
+                    note: ''
+                });
+
                 const menuItems = ref([]);
                 const existingOrders = ref([]);
                 const reversedOrders = computed(() => [...existingOrders.value].reverse());
@@ -593,15 +671,53 @@
                     }
                 };
 
-                const addToCart = (item) => {
-                    const existing = cart.value.find(c => c.name === item.name && !c.note);
+                const openItemModal = (item) => {
+                    activeItem.value = item;
+                    itemOptions.size = 'M (標準)';
+                    itemOptions.customExtraPrice = 0;
+                    itemOptions.sugar = '';
+                    itemOptions.ice = '';
+                    itemOptions.note = '';
+                };
+
+                const setSize = (size, extraPrice) => {
+                    itemOptions.size = size;
+                    itemOptions.customExtraPrice = extraPrice;
+                };
+
+                const confirmAddItem = () => {
+                    if (!activeItem.value) return;
+
+                    let finalName = activeItem.value.name;
+                    if (itemOptions.size && itemOptions.size !== 'M (標準)') {
+                        finalName += ` - ${itemOptions.size}`;
+                    }
+                    
+                    let finalNoteArr = [];
+                    if (itemOptions.sugar) finalNoteArr.push(itemOptions.sugar);
+                    if (itemOptions.ice) finalNoteArr.push(itemOptions.ice);
+                    if (itemOptions.note) finalNoteArr.push(itemOptions.note);
+                    
+                    const finalNote = finalNoteArr.join(', ');
+                    const finalPrice = activeItem.value.price + Number(itemOptions.customExtraPrice || 0);
+
+                    const cartItem = {
+                        name: finalName,
+                        price: finalPrice,
+                        category: activeItem.value.category,
+                        qty: 1,
+                        note: finalNote
+                    };
+
+                    const existing = cart.value.find(c => c.name === cartItem.name && c.note === cartItem.note && c.price === cartItem.price);
                     if (existing) {
                         existing.qty++;
                     } else {
-                        cart.value.push({ ...item, qty: 1, note: '' });
+                        cart.value.push(cartItem);
                     }
-                    showMsg(`已將 ${item.name} 加入購物車`);
+                    showMsg(`已將 ${activeItem.value.name} 加入購物車`);
                     
+                    activeItem.value = null;
                     currentView.value = 'cart';
                 };
 
@@ -873,7 +989,8 @@
                     showSettings, tempGasUrl, menuItems, cart, userName, cartTotalQty, cartTotalPrice,
                     showPasswordModal, adminPassword, checkAdminPassword,
                     storeName, newStoreName,
-                    addToCart, updateQty, removeFromCart, submitOrder,
+                    activeItem, itemOptions, openItemModal, setSize, confirmAddItem,
+                    updateQty, removeFromCart, submitOrder,
                     handleImageUpload, newMenuItems, aiProcessing, addNewEmptyItem, saveMenuToGas, clearOrders,
                     existingOrders, reversedOrders, generateOrderText, copyOrderText, toggleOrderStatus,
                     saveSettings, clearSettings, shareUrl, qrCodeUrl, copyShareUrl, msgModal, fileInput,
