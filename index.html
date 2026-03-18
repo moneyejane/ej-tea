@@ -139,7 +139,12 @@
                 <!-- 狀態 1：瀏覽今日菜單 -->
                 <div v-else-if="currentView === 'menu'" key="menu">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-dashed border-gray-300 pb-4 gap-4">
-                        <h2 class="text-xl font-bold"><i class="fas fa-book-open mr-2 text-yellow-500"></i>今日菜單</h2>
+                        <h2 class="text-xl font-bold flex items-center flex-wrap gap-2">
+                            <span><i class="fas fa-book-open mr-2 text-yellow-500"></i>今日菜單</span>
+                            <span v-if="storeName" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full border border-blue-200 shadow-sm flex items-center">
+                                <i class="fas fa-store mr-1"></i>{{ storeName }}
+                            </span>
+                        </h2>
                         <div class="flex flex-wrap gap-2">
                             <button @click="currentView = 'orders'" class="sketch-btn sketch-btn-secondary px-3 py-1.5 text-sm shadow flex items-center">
                                 <i class="fas fa-list-ol mr-1 text-blue-500"></i>查看統計
@@ -249,6 +254,12 @@
                         <button @click="clearOrders" class="text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors flex items-center">
                             <i class="fas fa-trash-alt mr-1"></i> 清空舊訂單
                         </button>
+                    </div>
+
+                    <!-- 新增：設定本次店家名稱 -->
+                    <div class="mb-6 bg-white p-5 rounded-lg border-2 border-gray-200 shadow-sm relative">
+                        <h3 class="font-bold text-lg mb-3 text-gray-800"><i class="fas fa-store mr-2 text-blue-500"></i>本次團購店家名稱</h3>
+                        <input v-model="newStoreName" type="text" placeholder="例如：50嵐、八方雲集 (選填)" class="sketch-input w-full text-lg shadow-inner bg-gray-50">
                     </div>
 
                     <div class="mb-8 p-8 bg-white rounded-lg border-2 border-dashed border-gray-300 text-center hover:bg-gray-50 hover:border-blue-400 transition-all relative cursor-pointer group">
@@ -482,6 +493,9 @@
                 const gasUrl = ref('');
                 const tempGasUrl = ref('');
                 
+                const storeName = ref('');
+                const newStoreName = ref('');
+
                 const menuItems = ref([]);
                 const existingOrders = ref([]);
                 const reversedOrders = computed(() => [...existingOrders.value].reverse());
@@ -532,6 +546,7 @@
                 };
 
                 const loadDemoData = () => {
+                    storeName.value = '示範飲料店';
                     menuItems.value = [
                         { id: 1, name: '招牌珍珠奶茶', price: 50, category: '茶飲' },
                         { id: 2, name: '烤雞腿排便當', price: 110, category: '便當' }
@@ -557,7 +572,15 @@
                         }
 
                         if (data.status === 'success') {
-                            menuItems.value = data.menu;
+                            const fetchedMenu = data.menu;
+                            const metaStore = fetchedMenu.find(i => i.name === '___META_STORE_NAME___');
+                            if (metaStore) {
+                                storeName.value = metaStore.category;
+                                menuItems.value = fetchedMenu.filter(i => i.name !== '___META_STORE_NAME___');
+                            } else {
+                                storeName.value = '';
+                                menuItems.value = fetchedMenu;
+                            }
                             existingOrders.value = data.orders;
                         } else {
                             showMsg('資料同步失敗：' + data.message, 'error');
@@ -696,8 +719,14 @@
                     const validItems = newMenuItems.value.filter(i => i.name && i.price);
                     if(validItems.length === 0) return showMsg('至少需要輸入一個完整的品項', 'error');
 
+                    const itemsToSave = [...validItems];
+                    if (newStoreName.value.trim()) {
+                        itemsToSave.push({ name: '___META_STORE_NAME___', price: 0, category: newStoreName.value.trim() });
+                    }
+
                     if (!gasUrl.value) {
                         showMsg('【預覽模式】菜單發布成功！舊訂單已自動清空。');
+                        storeName.value = newStoreName.value.trim();
                         menuItems.value = validItems;
                         currentView.value = 'menu';
                         newMenuItems.value = [];
@@ -710,7 +739,7 @@
                     try {
                         const res = await fetch(gasUrl.value, {
                             method: 'POST',
-                            body: JSON.stringify({ action: 'save_menu', items: validItems })
+                            body: JSON.stringify({ action: 'save_menu', items: itemsToSave })
                         });
                         const data = await res.json();
                         if (data.status === 'success') {
@@ -742,7 +771,9 @@
                         const key = `${o.item} ${o.note ? '('+o.note+')' : ''}`;
                         summary[key] = (summary[key] || 0) + Number(o.qty);
                     });
-                    let text = `📅 辦公室團購清單\n───────────────────\n`;
+                    let text = `📅 辦公室團購清單`;
+                    if (storeName.value) text += ` (${storeName.value})`;
+                    text += `\n───────────────────\n`;
                     for (const [name, qty] of Object.entries(summary)) text += `☑ ${name} x ${qty}\n`;
                     const totalItems = existingOrders.value.reduce((a,b)=>a+Number(b.qty),0);
                     const totalPrice = existingOrders.value.reduce((a,b)=>a+Number(b.item_price || 0),0);
@@ -829,6 +860,7 @@
                     if (adminPassword.value === '1234') {
                         showPasswordModal.value = false;
                         adminPassword.value = '';
+                        newStoreName.value = storeName.value;
                         currentView.value = 'admin';
                     } else {
                         showMsg('密碼錯誤！請重新輸入', 'error');
@@ -840,6 +872,7 @@
                     currentView, gasUrl, loading, loadingMsg, 
                     showSettings, tempGasUrl, menuItems, cart, userName, cartTotalQty, cartTotalPrice,
                     showPasswordModal, adminPassword, checkAdminPassword,
+                    storeName, newStoreName,
                     addToCart, updateQty, removeFromCart, submitOrder,
                     handleImageUpload, newMenuItems, aiProcessing, addNewEmptyItem, saveMenuToGas, clearOrders,
                     existingOrders, reversedOrders, generateOrderText, copyOrderText, toggleOrderStatus,
